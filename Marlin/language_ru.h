@@ -165,5 +165,6 @@
 #define MSG_DELTA_CALIBRATE_Y               "Калибровать Y"
 #define MSG_DELTA_CALIBRATE_Z               "Калибровать Z"
 #define MSG_DELTA_CALIBRATE_CENTER          "Калибровать центр"
+#define MSG_Z_PROBE_TRIGGERED               "Опусти шток!"
 
 #endif // LANGUAGE_RU_H

@@ -699,6 +699,25 @@ void serial_echopair_P(const char* s_P, unsigned long v) { serialprintPGM(s_P); 
 void tool_change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
 static void report_current_position();
 
+inline uint16_t code_value_ushort() { return (uint16_t)strtoul(seen_pointer + 1, NULL, 10); }
+
+#if HAS_BUZZER
+
+  /**
+   * M300: Play beep sound S<frequency Hz> P<duration ms>
+   */
+  inline void gcode_M300() {
+    uint16_t const frequency = code_seen('S') ? code_value_ushort() : 260;
+    uint16_t duration = code_seen('P') ? code_value_ushort() : 1000;
+
+    // Limits the tone duration to 0-5 seconds.
+    NOMORE(duration, 5000);
+
+    BUZZ(duration, frequency);
+  }
+
+#endif // HAS_BUZZER
+
 #if ENABLED(DEBUG_LEVELING_FEATURE)
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
     serialprintPGM(prefix);
@@ -1205,8 +1224,6 @@ inline unsigned long code_value_ulong() { return strtoul(seen_pointer + 1, NULL,
 inline long code_value_long() { return strtol(seen_pointer + 1, NULL, 10); }
 
 inline int code_value_int() { return (int)strtol(seen_pointer + 1, NULL, 10); }
-
-inline uint16_t code_value_ushort() { return (uint16_t)strtoul(seen_pointer + 1, NULL, 10); }
 
 inline uint8_t code_value_byte() { return (uint8_t)(constrain(strtol(seen_pointer + 1, NULL, 10), 0, 255)); }
 
@@ -4682,6 +4699,18 @@ inline void gcode_M17() {
    * M24: Start SD Print
    */
   inline void gcode_M24() {
+#if ENABLED(FIX_MOUNTED_PROBE) && HAS_Z_MIN
+    if (READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING) {
+      SERIAL_PROTOCOLLN(MSG_Z_PROBE_TRIGGERED);
+      LCD_MESSAGEPGM(MSG_Z_PROBE_TRIGGERED);
+      lcd_update();
+      card.stopSDPrint();
+  #if HAS_BUZZER
+      gcode_M300();
+  #endif //HAS_BUZZER
+      return;
+    }
+#endif //FIX_MOUNTED_PROBE
     card.startFileprint();
     print_job_timer.start();
   }
@@ -6589,23 +6618,6 @@ inline void gcode_M226() {
   }
 
 #endif // HAS_SERVOS
-
-#if HAS_BUZZER
-
-  /**
-   * M300: Play beep sound S<frequency Hz> P<duration ms>
-   */
-  inline void gcode_M300() {
-    uint16_t const frequency = code_seen('S') ? code_value_ushort() : 260;
-    uint16_t duration = code_seen('P') ? code_value_ushort() : 1000;
-
-    // Limits the tone duration to 0-5 seconds.
-    NOMORE(duration, 5000);
-
-    BUZZ(duration, frequency);
-  }
-
-#endif // HAS_BUZZER
 
 #if ENABLED(PIDTEMP)
 
