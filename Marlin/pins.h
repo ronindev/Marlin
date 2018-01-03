@@ -158,6 +158,8 @@
   #include "pins_FELIX2.h"
 #elif MB(MKS_BASE)
   #include "pins_MKS_BASE.h"
+#elif MB(MKS_GEN_L)
+  #include "pins_MKS_GEN_L.h"
 #elif MB(RIGIDBOARD)
   #include "pins_RIGIDBOARD.h"
 #elif MB(RIGIDBOARD_V2)
